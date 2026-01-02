@@ -137,19 +137,21 @@ export default function PhotoPage() {
     const discMap = new Map<string, DiscDistribution>()
 
     photo.volumes.forEach(vol => {
-      if (vol.disc) {
-        if (!discMap.has(vol.disc.code)) {
-          discMap.set(vol.disc.code, {
-            discCode: vol.disc.code,
-            volumes: [],
-          })
-        }
-        discMap.get(vol.disc.code)!.volumes.push(vol)
+      if (vol.discs && vol.discs.length > 0) {
+        vol.discs.forEach(dv => {
+          if (!discMap.has(dv.disc.code)) {
+            discMap.set(dv.disc.code, {
+              discCode: dv.disc.code,
+              volumes: [],
+            })
+          }
+          discMap.get(dv.disc.code)!.volumes.push(vol)
+        })
       }
     })
 
     // Add unassigned volumes
-    const unassigned = photo.volumes.filter(vol => !vol.disc)
+    const unassigned = photo.volumes.filter(vol => !vol.discs || vol.discs.length === 0)
     if (unassigned.length > 0) {
       discMap.set('未分配', {
         discCode: '未分配',
@@ -185,7 +187,7 @@ export default function PhotoPage() {
       vol: volume.vol,
       sizeValue,
       sizeUnit,
-      discId: volume.disc?.id,
+      discId: volume.discs?.[0]?.disc.id,
     })
   }
 

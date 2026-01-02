@@ -12,7 +12,11 @@ export async function GET(request: NextRequest) {
       include: {
         volumes: {
           include: {
-            disc: true,
+            discs: {
+              include: {
+                disc: true,
+              },
+            },
           },
         },
       },
@@ -47,7 +51,11 @@ export async function POST(request: NextRequest) {
     include: {
       volumes: {
         include: {
-          disc: true,
+          discs: {
+            include: {
+              disc: true,
+            },
+          },
         },
       },
     },

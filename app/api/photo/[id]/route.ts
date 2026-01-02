@@ -11,7 +11,11 @@ export async function GET(
     include: {
       volumes: {
         include: {
-          disc: true,
+          discs: {
+            include: {
+              disc: true,
+            },
+          },
         },
       },
     },

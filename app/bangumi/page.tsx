@@ -143,20 +143,22 @@ export default function BangumiPage() {
     const discMap = new Map<string, DiscDistribution>()
 
     bangumi.episodes.forEach(ep => {
-      if (ep.disc) {
-        if (!discMap.has(ep.disc.code)) {
-          discMap.set(ep.disc.code, {
-            discCode: ep.disc.code,
-            discType: '', // We'll fetch disc details separately if needed
-            episodes: [],
-          })
-        }
-        discMap.get(ep.disc.code)!.episodes.push(ep)
+      if (ep.discs && ep.discs.length > 0) {
+        ep.discs.forEach(dm => {
+          if (!discMap.has(dm.disc.code)) {
+            discMap.set(dm.disc.code, {
+              discCode: dm.disc.code,
+              discType: '', // We'll fetch disc details separately if needed
+              episodes: [],
+            })
+          }
+          discMap.get(dm.disc.code)!.episodes.push(ep)
+        })
       }
     })
 
     // Add unassigned episodes
-    const unassigned = bangumi.episodes.filter(ep => !ep.disc)
+    const unassigned = bangumi.episodes.filter(ep => !ep.discs || ep.discs.length === 0)
     if (unassigned.length > 0) {
       discMap.set('未分配', {
         discCode: '未分配',
@@ -196,7 +198,7 @@ export default function BangumiPage() {
       sizeUnit,
       format: episode.format,
       codec: episode.codec,
-      discId: episode.disc?.id,
+      discId: episode.discs?.[0]?.disc.id,
     })
   }
 

@@ -12,7 +12,11 @@ export async function GET(
     include: {
       episodes: {
         include: {
-          disc: true,
+          discs: {
+            include: {
+              disc: true,
+            },
+          },
         },
       },
     },
