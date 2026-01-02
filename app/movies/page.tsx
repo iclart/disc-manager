@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { Table, Button, Modal, Form, Input, Select, Space, Popconfirm, message, Tag, Grid, Card, Tooltip } from 'antd'
-import { PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons'
+import { PlusOutlined, EditOutlined, DeleteOutlined, ReloadOutlined } from '@ant-design/icons'
 import { formatSize, FILE_FORMATS, VIDEO_CODECS, SIZE_UNITS } from '@/lib/utils'
 import dayjs from 'dayjs'
 
@@ -275,9 +275,14 @@ export default function MoviesPage() {
   return (
     <div style={{ padding: isMobile ? 8 : 0 }}>
       <div style={{ marginBottom: 16 }}>
-        <Button type="primary" icon={<PlusOutlined />} onClick={handleAdd} block={isMobile}>
-          添加影片
-        </Button>
+        <Space style={{ width: '100%', justifyContent: isMobile ? 'space-between' : 'flex-start' }}>
+          <Button type="primary" icon={<PlusOutlined />} onClick={handleAdd} block={isMobile}>
+            添加影片
+          </Button>
+          <Button icon={<ReloadOutlined />} onClick={fetchMovies} loading={loading}>
+            刷新
+          </Button>
+        </Space>
       </div>
 
       {isMobile ? (

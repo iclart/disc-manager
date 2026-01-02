@@ -161,9 +161,9 @@ model DiscOther {
 }
 
 model Other {
-  id   Int    @id @default(autoincrement())
+  id   Int     @id @default(autoincrement())
   name String
-  desc String
+  desc String?
   size Int?
 
   discs DiscOther[]

@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { Table, Button, Modal, Form, Input, Select, Space, Popconfirm, message, Tag, Collapse, Descriptions, Tooltip } from 'antd'
-import { PlusOutlined, EditOutlined, DeleteOutlined, FolderOpenOutlined, AppstoreOutlined } from '@ant-design/icons'
+import { PlusOutlined, EditOutlined, DeleteOutlined, FolderOpenOutlined, AppstoreOutlined, ReloadOutlined } from '@ant-design/icons'
 import dayjs from 'dayjs'
 import { formatSize, FILE_FORMATS, VIDEO_CODECS, SIZE_UNITS } from '@/lib/utils'
 
@@ -392,9 +392,14 @@ export default function BangumiPage() {
   return (
     <div>
       <div style={{ marginBottom: 16 }}>
-        <Button type="primary" icon={<PlusOutlined />} onClick={handleAdd}>
-          添加番剧
-        </Button>
+        <Space>
+          <Button type="primary" icon={<PlusOutlined />} onClick={handleAdd}>
+            添加番剧
+          </Button>
+          <Button icon={<ReloadOutlined />} onClick={fetchBangumi} loading={loading}>
+            刷新
+          </Button>
+        </Space>
       </div>
       <Table
         columns={columns}
@@ -454,7 +459,7 @@ export default function BangumiPage() {
               <Input type="number" style={{ width: 80 }} />
             </Form.Item>
             <Form.Item label="大小" required>
-              <Input.Group compact>
+              <Space.Compact style={{ width: '100%' }}>
                 <Form.Item
                   name="sizeValue"
                   rules={[{ required: true, message: '请输入大小' }]}
@@ -477,7 +482,7 @@ export default function BangumiPage() {
                     ))}
                   </Select>
                 </Form.Item>
-              </Input.Group>
+              </Space.Compact>
             </Form.Item>
             <Form.Item name="format" label="格式" rules={[{ required: true }]}>
               <Select style={{ width: 100 }} options={FILE_FORMATS} />

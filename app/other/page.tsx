@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { Table, Button, Modal, Form, Input, Select, Space, Popconfirm, message, Tag, Grid, Card, Tooltip } from 'antd'
-import { PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons'
+import { PlusOutlined, EditOutlined, DeleteOutlined, ReloadOutlined } from '@ant-design/icons'
 import { formatSize, SIZE_UNITS } from '@/lib/utils'
 import dayjs from 'dayjs'
 
@@ -255,9 +255,14 @@ export default function OtherPage() {
   return (
     <div style={{ padding: isMobile ? 8 : 0 }}>
       <div style={{ marginBottom: 16 }}>
-        <Button type="primary" icon={<PlusOutlined />} onClick={handleAdd} block={isMobile}>
-          添加资源
-        </Button>
+        <Space style={{ width: '100%', justifyContent: isMobile ? 'space-between' : 'flex-start' }}>
+          <Button type="primary" icon={<PlusOutlined />} onClick={handleAdd} block={isMobile}>
+            添加资源
+          </Button>
+          <Button icon={<ReloadOutlined />} onClick={fetchOthers} loading={loading}>
+            刷新
+          </Button>
+        </Space>
       </div>
 
       {isMobile ? (
@@ -311,7 +316,6 @@ export default function OtherPage() {
           <Form.Item
             label="描述"
             name="desc"
-            rules={[{ required: true, message: '请输入描述' }]}
           >
             <Input.TextArea placeholder="请输入描述" rows={3} />
           </Form.Item>
@@ -319,7 +323,7 @@ export default function OtherPage() {
             label="大小"
             required
           >
-            <Input.Group compact>
+            <Space.Compact style={{ width: '100%' }}>
               <Form.Item
                 name="sizeValue"
                 rules={[{ required: true, message: '请输入大小' }]}
@@ -342,7 +346,7 @@ export default function OtherPage() {
                   ))}
                 </Select>
               </Form.Item>
-            </Input.Group>
+            </Space.Compact>
           </Form.Item>
           {/* Discs are now managed through the disc creation/editing interface */}
         </Form>

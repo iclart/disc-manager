@@ -2,11 +2,9 @@
 
 import { useState, useEffect } from 'react'
 import { Table, Button, Modal, Form, Input, Select, Space, Popconfirm, message, Tag, DatePicker, Badge, Tabs, Divider, TreeSelect, Grid, Card, Alert } from 'antd'
-import { PlusOutlined, EditOutlined, DeleteOutlined, HistoryOutlined, MinusCircleOutlined, CheckCircleOutlined } from '@ant-design/icons'
+import { PlusOutlined, EditOutlined, DeleteOutlined, HistoryOutlined, MinusCircleOutlined, CheckCircleOutlined, ReloadOutlined, EyeOutlined } from '@ant-design/icons'
 import dayjs from 'dayjs'
 import { formatSize, DISC_TYPES, SIZE_UNITS, FILE_FORMATS, VIDEO_CODECS } from '@/lib/utils'
-
-const { TabPane } = Tabs
 const { useBreakpoint } = Grid
 
 type Disc = {
@@ -41,8 +39,10 @@ export default function DiscsPage() {
   const [modalVisible, setModalVisible] = useState(false)
   const [editingDisc, setEditingDisc] = useState<Disc | null>(null)
   const [historyVisible, setHistoryVisible] = useState(false)
+  const [contentVisible, setContentVisible] = useState(false)
   const [selectedDisc, setSelectedDisc] = useState<Disc | null>(null)
   const [history, setHistory] = useState<any[]>([])
+  const [discContent, setDiscContent] = useState<any>(null)
 
   // Available resources
   const [availableMovies, setAvailableMovies] = useState<Movie[]>([])
@@ -480,6 +480,18 @@ export default function DiscsPage() {
     }
   }
 
+  const showContent = async (disc: Disc) => {
+    setSelectedDisc(disc)
+    try {
+      const res = await fetch(`/api/discs/${disc.id}`)
+      const data = await res.json()
+      setDiscContent(data)
+      setContentVisible(true)
+    } catch (error) {
+      message.error('加载光盘内容失败')
+    }
+  }
+
   const addHistory = async () => {
     try {
       const values = await historyForm.validateFields()
@@ -548,10 +560,13 @@ export default function DiscsPage() {
     {
       title: '操作',
       key: 'action',
-      width: 200,
+      width: 250,
       fixed: 'right' as const,
       render: (_: any, record: Disc) => (
         <Space size="small" wrap>
+          <Button type="link" size="small" icon={<EyeOutlined />} onClick={() => showContent(record)}>
+            内容
+          </Button>
           <Button type="link" size="small" icon={<HistoryOutlined />} onClick={() => showHistory(record)}>
             巡检
           </Button>
@@ -582,6 +597,7 @@ export default function DiscsPage() {
       }
       extra={
         <Space size="small">
+          <Button type="link" size="small" icon={<EyeOutlined />} onClick={() => showContent(record)} />
           <Button type="link" size="small" icon={<HistoryOutlined />} onClick={() => showHistory(record)} />
           <Button type="link" size="small" icon={<EditOutlined />} onClick={() => handleEdit(record)} />
           <Popconfirm title="确认删除?" onConfirm={() => handleDelete(record.id)}>
@@ -625,9 +641,14 @@ export default function DiscsPage() {
   return (
     <div style={{ padding: isMobile ? 8 : 0 }}>
       <div style={{ marginBottom: 16 }}>
-        <Button type="primary" icon={<PlusOutlined />} onClick={handleAdd} block={isMobile}>
-          添加光盘
-        </Button>
+        <Space style={{ width: '100%', justifyContent: isMobile ? 'space-between' : 'flex-start' }}>
+          <Button type="primary" icon={<PlusOutlined />} onClick={handleAdd} block={isMobile}>
+            添加光盘
+          </Button>
+          <Button icon={<ReloadOutlined />} onClick={fetchDiscs} loading={loading}>
+            刷新
+          </Button>
+        </Space>
       </div>
 
       {isMobile ? (
@@ -681,7 +702,7 @@ export default function DiscsPage() {
         width={isMobile ? '95%' : 900}
         style={{ top: isMobile ? 20 : 100 }}
         footer={editingDisc ? null : (
-          <Space direction={isMobile ? 'vertical' : 'horizontal'} style={{ width: isMobile ? '100%' : 'auto' }}>
+          <Space orientation={isMobile ? 'vertical' : 'horizontal'} style={{ width: isMobile ? '100%' : 'auto' }}>
             <Button block={isMobile} onClick={() => setModalVisible(false)}>取消</Button>
             <Button block={isMobile} type="primary" onClick={handleSubmit}>创建</Button>
           </Space>
@@ -696,7 +717,7 @@ export default function DiscsPage() {
             <Select options={DISC_TYPES} placeholder="请选择光盘类型" disabled={!!editingDisc} />
           </Form.Item>
           <Form.Item label="大小" extra="可选，如不填写将根据内容自动计算">
-            <Input.Group compact>
+            <Space.Compact style={{ width: '100%' }}>
               <Form.Item name="sizeValue" noStyle>
                 <Input
                   type="number"
@@ -716,7 +737,7 @@ export default function DiscsPage() {
                   ))}
                 </Select>
               </Form.Item>
-            </Input.Group>
+            </Space.Compact>
           </Form.Item>
         </Form>
 
@@ -725,7 +746,7 @@ export default function DiscsPage() {
             {duplicateWarnings.length > 0 && (
               <Alert
                 type="warning"
-                message="以下资源已刻录到其他光盘"
+                title="以下资源已刻录到其他光盘"
                 description={
                   <ul style={{ margin: 0, paddingLeft: 20 }}>
                     {duplicateWarnings.map((dup, idx) => (
@@ -739,8 +760,14 @@ export default function DiscsPage() {
                 style={{ marginBottom: 16 }}
               />
             )}
-            <Tabs defaultActiveKey="movies">
-            <TabPane tab={`影片 (${selectedMovieIds.length + newMovies.length})`} key="movies">
+            <Tabs
+            defaultActiveKey="movies"
+            items={[
+              {
+                key: 'movies',
+                label: `影片 (${selectedMovieIds.length + newMovies.length})`,
+                children: (
+                  <>
               <div style={{ marginBottom: 16 }}>
                 <div style={{ marginBottom: 8, fontWeight: 'bold' }}>选择现有影片</div>
                 <Select
@@ -769,7 +796,7 @@ export default function DiscsPage() {
                       onChange={(e) => updateNewMovie(index, 'name', e.target.value)}
                       style={{ width: 200 }}
                     />
-                    <Input.Group compact>
+                    <Space.Compact>
                       <Input
                         type="number"
                         placeholder="大小"
@@ -788,7 +815,7 @@ export default function DiscsPage() {
                           <Select.Option key={unit.value} value={unit.value}>{unit.label}</Select.Option>
                         ))}
                       </Select>
-                    </Input.Group>
+                    </Space.Compact>
                     <Select
                       value={movie.format}
                       onChange={(v) => updateNewMovie(index, 'format', v)}
@@ -805,9 +832,14 @@ export default function DiscsPage() {
                   </Space>
                 </div>
               ))}
-            </TabPane>
-
-            <TabPane tab={`番剧剧集 (${selectedEpisodeIds.length + newEpisodes.length})`} key="episodes">
+                  </>
+                ),
+              },
+              {
+                key: 'episodes',
+                label: `番剧剧集 (${selectedEpisodeIds.length + newEpisodes.length})`,
+                children: (
+                  <>
               <div style={{ marginBottom: 16 }}>
                 <div style={{ marginBottom: 8, fontWeight: 'bold' }}>选择现有剧集</div>
                 <TreeSelect
@@ -880,7 +912,7 @@ export default function DiscsPage() {
                       onChange={(e) => updateNewEpisode(index, 'episode', parseInt(e.target.value) || 1)}
                       style={{ width: 60 }}
                     />
-                    <Input.Group compact>
+                    <Space.Compact>
                       <Input
                         type="number"
                         placeholder="大小"
@@ -899,7 +931,7 @@ export default function DiscsPage() {
                           <Select.Option key={unit.value} value={unit.value}>{unit.label}</Select.Option>
                         ))}
                       </Select>
-                    </Input.Group>
+                    </Space.Compact>
                     <Select
                       value={ep.format}
                       onChange={(v) => updateNewEpisode(index, 'format', v)}
@@ -951,7 +983,7 @@ export default function DiscsPage() {
                           onChange={(e) => updateBangumiEpisode(bIndex, eIndex, 'episode', parseInt(e.target.value) || 1)}
                           style={{ width: 60 }}
                         />
-                        <Input.Group compact>
+                        <Space.Compact>
                           <Input
                             type="number"
                             placeholder="大小"
@@ -970,7 +1002,7 @@ export default function DiscsPage() {
                               <Select.Option key={unit.value} value={unit.value}>{unit.label}</Select.Option>
                             ))}
                           </Select>
-                        </Input.Group>
+                        </Space.Compact>
                         <Select
                           value={ep.format}
                           onChange={(v) => updateBangumiEpisode(bIndex, eIndex, 'format', v)}
@@ -989,9 +1021,14 @@ export default function DiscsPage() {
                   ))}
                 </div>
               ))}
-            </TabPane>
-
-            <TabPane tab={`写真期数 (${selectedVolumeIds.length + newVolumes.length})`} key="volumes">
+                  </>
+                ),
+              },
+              {
+                key: 'volumes',
+                label: `写真期数 (${selectedVolumeIds.length + newVolumes.length})`,
+                children: (
+                  <>
               <div style={{ marginBottom: 16 }}>
                 <div style={{ marginBottom: 8, fontWeight: 'bold' }}>选择现有期数</div>
                 <TreeSelect
@@ -1058,7 +1095,7 @@ export default function DiscsPage() {
                       onChange={(e) => updateNewVolume(index, 'vol', parseInt(e.target.value) || 1)}
                       style={{ width: 70 }}
                     />
-                    <Input.Group compact>
+                    <Space.Compact>
                       <Input
                         type="number"
                         placeholder="大小"
@@ -1077,7 +1114,7 @@ export default function DiscsPage() {
                           <Select.Option key={unit.value} value={unit.value}>{unit.label}</Select.Option>
                         ))}
                       </Select>
-                    </Input.Group>
+                    </Space.Compact>
                     <Button size="small" danger icon={<MinusCircleOutlined />} onClick={() => removeNewVolume(index)} />
                   </Space>
                 </div>
@@ -1111,7 +1148,7 @@ export default function DiscsPage() {
                           onChange={(e) => updatePhotoVolume(pIndex, vIndex, 'vol', parseInt(e.target.value) || 1)}
                           style={{ width: 70 }}
                         />
-                        <Input.Group compact>
+                        <Space.Compact>
                           <Input
                             type="number"
                             placeholder="大小"
@@ -1130,16 +1167,21 @@ export default function DiscsPage() {
                               <Select.Option key={unit.value} value={unit.value}>{unit.label}</Select.Option>
                             ))}
                           </Select>
-                        </Input.Group>
+                        </Space.Compact>
                         <Button size="small" danger icon={<MinusCircleOutlined />} onClick={() => removePhotoVolume(pIndex, vIndex)} />
                       </Space>
                     </div>
                   ))}
                 </div>
               ))}
-            </TabPane>
-
-            <TabPane tab={`其他资源 (${selectedOtherIds.length + newOthers.length})`} key="others">
+                  </>
+                ),
+              },
+              {
+                key: 'others',
+                label: `其他资源 (${selectedOtherIds.length + newOthers.length})`,
+                children: (
+                  <>
               <div style={{ marginBottom: 16 }}>
                 <div style={{ marginBottom: 8, fontWeight: 'bold' }}>选择现有资源</div>
                 <Select
@@ -1174,7 +1216,7 @@ export default function DiscsPage() {
                       onChange={(e) => updateNewOther(index, 'desc', e.target.value)}
                       style={{ width: 150 }}
                     />
-                    <Input.Group compact>
+                    <Space.Compact>
                       <Input
                         type="number"
                         placeholder="大小"
@@ -1193,13 +1235,16 @@ export default function DiscsPage() {
                           <Select.Option key={unit.value} value={unit.value}>{unit.label}</Select.Option>
                         ))}
                       </Select>
-                    </Input.Group>
+                    </Space.Compact>
                     <Button size="small" danger icon={<MinusCircleOutlined />} onClick={() => removeNewOther(index)} />
                   </Space>
                 </div>
               ))}
-            </TabPane>
-          </Tabs>
+                  </>
+                ),
+              },
+            ]}
+          />
           </>
         )}
       </Modal>
@@ -1251,6 +1296,126 @@ export default function DiscsPage() {
           size="small"
           scroll={{ x: isMobile ? 400 : undefined }}
         />
+      </Modal>
+
+      <Modal
+        title={`光盘内容 - ${selectedDisc?.code}`}
+        open={contentVisible}
+        onCancel={() => setContentVisible(false)}
+        footer={null}
+        width={isMobile ? '95%' : 900}
+        style={{ top: isMobile ? 20 : 100 }}
+      >
+        {discContent && (
+          <Tabs
+            defaultActiveKey="movies"
+            items={[
+              {
+                key: 'movies',
+                label: `影片 (${discContent.movies?.length || 0})`,
+                children: (
+                  <Table
+                    columns={[
+                      { title: '名称', dataIndex: ['movie', 'name'], key: 'name' },
+                      { title: '大小', dataIndex: ['movie', 'size'], key: 'size', render: formatSize },
+                      { title: '格式', dataIndex: ['movie', 'format'], key: 'format' },
+                      { title: '编码', dataIndex: ['movie', 'codec'], key: 'codec' },
+                      {
+                        title: '刻录时间',
+                        dataIndex: 'burnedAt',
+                        key: 'burnedAt',
+                        render: (d: string) => dayjs(d).format('YYYY-MM-DD HH:mm'),
+                      },
+                      { title: '备注', dataIndex: 'notes', key: 'notes', ellipsis: true },
+                    ]}
+                    dataSource={discContent.movies || []}
+                    rowKey="id"
+                    pagination={false}
+                    size="small"
+                  />
+                ),
+              },
+              {
+                key: 'episodes',
+                label: `番剧剧集 (${discContent.bangumiEpisodes?.length || 0})`,
+                children: (
+                  <Table
+                    columns={[
+                      { title: '番剧', dataIndex: ['bangumiEpisode', 'bangumi', 'name'], key: 'bangumi' },
+                      { title: '季', dataIndex: ['bangumiEpisode', 'season'], key: 'season', width: 80 },
+                      { title: '集', dataIndex: ['bangumiEpisode', 'episode'], key: 'episode', width: 60 },
+                      { title: '大小', dataIndex: ['bangumiEpisode', 'size'], key: 'size', render: formatSize, width: 100 },
+                      { title: '格式', dataIndex: ['bangumiEpisode', 'format'], key: 'format', width: 80 },
+                      { title: '编码', dataIndex: ['bangumiEpisode', 'codec'], key: 'codec', width: 100 },
+                      {
+                        title: '刻录时间',
+                        dataIndex: 'burnedAt',
+                        key: 'burnedAt',
+                        width: 150,
+                        render: (d: string) => dayjs(d).format('YYYY-MM-DD HH:mm'),
+                      },
+                      { title: '备注', dataIndex: 'notes', key: 'notes', ellipsis: true },
+                    ]}
+                    dataSource={discContent.bangumiEpisodes || []}
+                    rowKey="id"
+                    pagination={false}
+                    size="small"
+                  />
+                ),
+              },
+              {
+                key: 'volumes',
+                label: `写真期数 (${discContent.photoVolumes?.length || 0})`,
+                children: (
+                  <Table
+                    columns={[
+                      { title: '写真', dataIndex: ['volume', 'photo', 'name'], key: 'photo' },
+                      { title: '期数', dataIndex: ['volume', 'vol'], key: 'vol', width: 80 },
+                      { title: '大小', dataIndex: ['volume', 'size'], key: 'size', render: formatSize, width: 100 },
+                      {
+                        title: '刻录时间',
+                        dataIndex: 'burnedAt',
+                        key: 'burnedAt',
+                        width: 150,
+                        render: (d: string) => dayjs(d).format('YYYY-MM-DD HH:mm'),
+                      },
+                      { title: '备注', dataIndex: 'notes', key: 'notes', ellipsis: true },
+                    ]}
+                    dataSource={discContent.photoVolumes || []}
+                    rowKey="id"
+                    pagination={false}
+                    size="small"
+                  />
+                ),
+              },
+              {
+                key: 'others',
+                label: `其他资源 (${discContent.others?.length || 0})`,
+                children: (
+                  <Table
+                    columns={[
+                      { title: '名称', dataIndex: ['other', 'name'], key: 'name' },
+                      { title: '描述', dataIndex: ['other', 'desc'], key: 'desc', ellipsis: true },
+                      { title: '大小', dataIndex: ['other', 'size'], key: 'size', render: formatSize, width: 100 },
+                      {
+                        title: '刻录时间',
+                        dataIndex: 'burnedAt',
+                        key: 'burnedAt',
+                        width: 150,
+                        render: (d: string) => dayjs(d).format('YYYY-MM-DD HH:mm'),
+                      },
+                      { title: '备注', dataIndex: 'notes', key: 'notes', ellipsis: true },
+                    ]}
+                    dataSource={discContent.others || []}
+                    rowKey="id"
+                    pagination={false}
+                    size="small"
+                  />
+                ),
+              },
+            ]}
+          />
+        )}
       </Modal>
     </div>
   )

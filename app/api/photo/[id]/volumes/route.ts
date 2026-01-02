@@ -12,7 +12,7 @@ export async function POST(
 
   const volume = await prisma.photoVolume.create({
     data: {
-      vol,
+      vol: typeof vol === 'string' ? parseInt(vol) : vol,
       size,
       photoId: parseInt(id),
       ...(discId

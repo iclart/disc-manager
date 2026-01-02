@@ -13,7 +13,7 @@ export async function POST(
   const episodeData = await prisma.bangumiEpisode.create({
     data: {
       season,
-      episode,
+      episode: typeof episode === 'string' ? parseInt(episode) : episode,
       size,
       format,
       codec,

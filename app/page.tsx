@@ -1,7 +1,7 @@
 'use client'
 
-import { useState } from 'react'
-import { ConfigProvider, Layout, Menu, theme } from 'antd'
+import { useState, useEffect } from 'react'
+import { ConfigProvider, Layout, Menu, theme, Button, message } from 'antd'
 import zhCN from 'antd/locale/zh_CN'
 import {
   AppstoreOutlined,
@@ -10,7 +10,9 @@ import {
   PictureOutlined,
   FileOutlined,
   HistoryOutlined,
+  LogoutOutlined,
 } from '@ant-design/icons'
+import { useRouter } from 'next/navigation'
 import DiscsPage from './discs/page'
 import MoviesPage from './movies/page'
 import BangumiPage from './bangumi/page'
@@ -23,9 +25,47 @@ type MenuKey = 'discs' | 'movies' | 'bangumi' | 'photo' | 'other'
 
 export default function Home() {
   const [selectedKey, setSelectedKey] = useState<MenuKey>('discs')
+  const [loading, setLoading] = useState(true)
+  const [username, setUsername] = useState<string | null>(null)
+  const router = useRouter()
   const {
     token: { colorBgContainer, borderRadiusLG },
   } = theme.useToken()
+
+  useEffect(() => {
+    checkAuth()
+  }, [])
+
+  const checkAuth = async () => {
+    try {
+      const res = await fetch('/api/auth/me')
+      if (!res.ok) {
+        router.push('/login')
+        return
+      }
+      const data = await res.json()
+      setUsername(data.user.username)
+    } catch (error) {
+      message.error('认证失败')
+      router.push('/login')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleLogout = async () => {
+    try {
+      await fetch('/api/auth/logout', { method: 'POST' })
+      message.success('已退出登录')
+      router.push('/login')
+    } catch (error) {
+      message.error('退出失败')
+    }
+  }
+
+  if (loading) {
+    return <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>加载中...</div>
+  }
 
   const menuItems = [
     { key: 'discs', icon: <DatabaseOutlined />, label: '光盘管理' },
@@ -79,10 +119,16 @@ export default function Home() {
           />
         </Sider>
         <Layout style={{ marginLeft: 200 }}>
-          <Header style={{ padding: 0, background: colorBgContainer }}>
-            <h1 style={{ paddingLeft: 24, margin: 0, lineHeight: '64px' }}>
+          <Header style={{ padding: '0 24px', background: colorBgContainer, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <h1 style={{ margin: 0, lineHeight: '64px' }}>
               {menuItems.find(item => item.key === selectedKey)?.label}
             </h1>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+              <span>欢迎, {username}</span>
+              <Button icon={<LogoutOutlined />} onClick={handleLogout}>
+                退出
+              </Button>
+            </div>
           </Header>
           <Content style={{ margin: '24px 16px 0' }}>
             <div

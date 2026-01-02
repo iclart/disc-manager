@@ -630,5 +630,15 @@ export async function POST(request: NextRequest) {
     }
   }
 
+  // Create default inspection record (status: good) for new disc
+  await prisma.discHistory.create({
+    data: {
+      discId: disc.id,
+      date: new Date(),
+      status: true,
+      desc: '新建光盘',
+    },
+  })
+
   return NextResponse.json(finalDisc)
 }

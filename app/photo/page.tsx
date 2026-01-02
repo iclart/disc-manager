@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { Table, Button, Modal, Form, Input, Select, Space, Popconfirm, message, Tag, Collapse, Tooltip } from 'antd'
-import { PlusOutlined, EditOutlined, DeleteOutlined, FolderOpenOutlined, AppstoreOutlined } from '@ant-design/icons'
+import { PlusOutlined, EditOutlined, DeleteOutlined, FolderOpenOutlined, AppstoreOutlined, ReloadOutlined } from '@ant-design/icons'
 import { formatSize, SIZE_UNITS } from '@/lib/utils'
 import dayjs from 'dayjs'
 
@@ -375,9 +375,14 @@ export default function PhotoPage() {
   return (
     <div>
       <div style={{ marginBottom: 16 }}>
-        <Button type="primary" icon={<PlusOutlined />} onClick={handleAdd}>
-          添加写真
-        </Button>
+        <Space>
+          <Button type="primary" icon={<PlusOutlined />} onClick={handleAdd}>
+            添加写真
+          </Button>
+          <Button icon={<ReloadOutlined />} onClick={fetchPhotos} loading={loading}>
+            刷新
+          </Button>
+        </Space>
       </div>
       <Table
         columns={columns}
