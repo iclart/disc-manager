@@ -45,10 +45,14 @@ export default function MoviesPage() {
     fetchDiscs()
   }, [page, pageSize])
 
-  const fetchMovies = async () => {
+  const fetchMovies = async (sortField?: string, sortOrder?: 'ascend' | 'descend') => {
     setLoading(true)
     try {
-      const res = await fetch(`/api/movies?page=${page}&pageSize=${pageSize}`)
+      let url = `/api/movies?page=${page}&pageSize=${pageSize}`
+      if (sortField && sortOrder) {
+        url += `&sortField=${sortField}&sortOrder=${sortOrder}`
+      }
+      const res = await fetch(url)
       const data = await res.json()
       setMovies(data.data)
       setTotal(data.total)
@@ -161,7 +165,7 @@ export default function MoviesPage() {
   }
 
   const columns = [
-    { title: '名称', dataIndex: 'name', key: 'name', ellipsis: true },
+    { title: '名称', dataIndex: 'name', key: 'name', ellipsis: true, sorter: true },
     {
       title: '大小',
       dataIndex: 'size',
@@ -279,7 +283,7 @@ export default function MoviesPage() {
           <Button type="primary" icon={<PlusOutlined />} onClick={handleAdd} block={isMobile}>
             添加影片
           </Button>
-          <Button icon={<ReloadOutlined />} onClick={fetchMovies} loading={loading}>
+          <Button icon={<ReloadOutlined />} onClick={() => fetchMovies()} loading={loading}>
             刷新
           </Button>
         </Space>
@@ -302,6 +306,11 @@ export default function MoviesPage() {
           dataSource={movies}
           rowKey="id"
           loading={loading}
+          onChange={(pagination, filters, sorter) => {
+            const sortField = Array.isArray(sorter) ? undefined : sorter.field
+            const sortOrder = Array.isArray(sorter) ? undefined : sorter.order
+            fetchMovies(sortField as string, sortOrder as 'ascend' | 'descend' | undefined)
+          }}
           pagination={{
             total,
             current: page,

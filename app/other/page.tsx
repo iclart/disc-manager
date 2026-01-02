@@ -44,10 +44,14 @@ export default function OtherPage() {
     fetchDiscs()
   }, [page, pageSize])
 
-  const fetchOthers = async () => {
+  const fetchOthers = async (sortField?: string, sortOrder?: 'ascend' | 'descend') => {
     setLoading(true)
     try {
-      const res = await fetch(`/api/other?page=${page}&pageSize=${pageSize}`)
+      let url = `/api/other?page=${page}&pageSize=${pageSize}`
+      if (sortField && sortOrder) {
+        url += `&sortField=${sortField}&sortOrder=${sortOrder}`
+      }
+      const res = await fetch(url)
       const data = await res.json()
       setOthers(data.data)
       setTotal(data.total)
@@ -158,7 +162,7 @@ export default function OtherPage() {
   }
 
   const columns = [
-    { title: '名称', dataIndex: 'name', key: 'name', ellipsis: true },
+    { title: '名称', dataIndex: 'name', key: 'name', ellipsis: true, sorter: true },
     { title: '描述', dataIndex: 'desc', key: 'desc', ellipsis: true, responsive: ['sm' as const] },
     {
       title: '大小',
@@ -259,7 +263,7 @@ export default function OtherPage() {
           <Button type="primary" icon={<PlusOutlined />} onClick={handleAdd} block={isMobile}>
             添加资源
           </Button>
-          <Button icon={<ReloadOutlined />} onClick={fetchOthers} loading={loading}>
+          <Button icon={<ReloadOutlined />} onClick={() => fetchOthers()} loading={loading}>
             刷新
           </Button>
         </Space>
@@ -282,6 +286,11 @@ export default function OtherPage() {
           dataSource={others}
           rowKey="id"
           loading={loading}
+          onChange={(pagination, filters, sorter) => {
+            const sortField = Array.isArray(sorter) ? undefined : sorter.field
+            const sortOrder = Array.isArray(sorter) ? undefined : sorter.order
+            fetchOthers(sortField as string, sortOrder as 'ascend' | 'descend' | undefined)
+          }}
           pagination={{
             total,
             current: page,

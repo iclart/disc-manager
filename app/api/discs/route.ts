@@ -7,8 +7,21 @@ export async function GET(request: NextRequest) {
   const page = parseInt(searchParams.get('page') || '1')
   const pageSize = parseInt(searchParams.get('pageSize') || '10')
   const type = searchParams.get('type')
+  const sortField = searchParams.get('sortField')
+  const sortOrder = searchParams.get('sortOrder')
 
   const where = type ? { type } : {}
+
+  // Build orderBy based on sort parameters
+  let orderBy: any = { createdAt: 'desc' }
+  if (sortField && sortOrder) {
+    const order = sortOrder === 'ascend' ? 'asc' : 'desc'
+    if (sortField === 'code') {
+      orderBy = { code: order }
+    } else if (sortField === 'createdAt') {
+      orderBy = { createdAt: order }
+    }
+  }
 
   const [discs, total] = await Promise.all([
     prisma.disc.findMany({
@@ -53,7 +66,7 @@ export async function GET(request: NextRequest) {
       },
       skip: (page - 1) * pageSize,
       take: pageSize,
-      orderBy: { createdAt: 'desc' },
+      orderBy,
     }),
     prisma.disc.count({ where }),
   ])

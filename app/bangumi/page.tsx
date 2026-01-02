@@ -62,10 +62,14 @@ export default function BangumiPage() {
     fetchDiscs()
   }, [page, pageSize])
 
-  const fetchBangumi = async () => {
+  const fetchBangumi = async (sortField?: string, sortOrder?: 'ascend' | 'descend') => {
     setLoading(true)
     try {
-      const res = await fetch(`/api/bangumi?page=${page}&pageSize=${pageSize}`)
+      let url = `/api/bangumi?page=${page}&pageSize=${pageSize}`
+      if (sortField && sortOrder) {
+        url += `&sortField=${sortField}&sortOrder=${sortOrder}`
+      }
+      const res = await fetch(url)
       const data = await res.json()
       setBangumiList(data.data)
       setTotal(data.total)
@@ -339,7 +343,7 @@ export default function BangumiPage() {
   }
 
   const columns = [
-    { title: '番剧名称', dataIndex: 'name', key: 'name' },
+    { title: '番剧名称', dataIndex: 'name', key: 'name', sorter: true },
     {
       title: '总大小',
       dataIndex: 'size',
@@ -396,7 +400,7 @@ export default function BangumiPage() {
           <Button type="primary" icon={<PlusOutlined />} onClick={handleAdd}>
             添加番剧
           </Button>
-          <Button icon={<ReloadOutlined />} onClick={fetchBangumi} loading={loading}>
+          <Button icon={<ReloadOutlined />} onClick={() => fetchBangumi()} loading={loading}>
             刷新
           </Button>
         </Space>
@@ -406,6 +410,11 @@ export default function BangumiPage() {
         dataSource={bangumiList}
         rowKey="id"
         loading={loading}
+        onChange={(pagination, filters, sorter) => {
+          const sortField = Array.isArray(sorter) ? undefined : sorter.field
+          const sortOrder = Array.isArray(sorter) ? undefined : sorter.order
+          fetchBangumi(sortField as string, sortOrder as 'ascend' | 'descend' | undefined)
+        }}
         expandable={{
           expandedRowRender,
           defaultExpandedRowKeys: [],

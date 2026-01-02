@@ -114,10 +114,14 @@ export default function DiscsPage() {
     validateResources()
   }, [selectedMovieIds, selectedEpisodeIds, selectedVolumeIds, selectedOtherIds])
 
-  const fetchDiscs = async () => {
+  const fetchDiscs = async (sortField?: string, sortOrder?: 'ascend' | 'descend') => {
     setLoading(true)
     try {
-      const res = await fetch(`/api/discs?page=${page}&pageSize=${pageSize}`)
+      let url = `/api/discs?page=${page}&pageSize=${pageSize}`
+      if (sortField && sortOrder) {
+        url += `&sortField=${sortField}&sortOrder=${sortOrder}`
+      }
+      const res = await fetch(url)
       const data = await res.json()
       setDiscs(data.data)
       setTotal(data.total)
@@ -512,7 +516,14 @@ export default function DiscsPage() {
   }
 
   const columns = [
-    { title: '编码', dataIndex: 'code', key: 'code', width: 100, responsive: ['md' as const] },
+    {
+      title: '编码',
+      dataIndex: 'code',
+      key: 'code',
+      width: 100,
+      responsive: ['md' as const],
+      sorter: true,
+    },
     {
       title: '类型',
       dataIndex: 'type',
@@ -540,6 +551,14 @@ export default function DiscsPage() {
         if (items.length === 0) return <Tag>空</Tag>
         return <Space size={4} wrap>{items}</Space>
       },
+    },
+    {
+      title: '刻录时间',
+      key: 'createdAt',
+      width: 150,
+      responsive: ['md' as const],
+      render: (_: any, record: Disc) => record.createdAt ? dayjs(record.createdAt).format('YYYY-MM-DD') : '-',
+      sorter: true,
     },
     {
       title: '状态',
@@ -645,7 +664,7 @@ export default function DiscsPage() {
           <Button type="primary" icon={<PlusOutlined />} onClick={handleAdd} block={isMobile}>
             添加光盘
           </Button>
-          <Button icon={<ReloadOutlined />} onClick={fetchDiscs} loading={loading}>
+          <Button icon={<ReloadOutlined />} onClick={() => fetchDiscs()} loading={loading}>
             刷新
           </Button>
         </Space>
@@ -680,6 +699,11 @@ export default function DiscsPage() {
           dataSource={discs}
           rowKey="id"
           loading={loading}
+          onChange={(pagination, filters, sorter) => {
+            const sortField = Array.isArray(sorter) ? undefined : sorter.field
+            const sortOrder = Array.isArray(sorter) ? undefined : sorter.order
+            fetchDiscs(sortField as string, sortOrder as 'ascend' | 'descend' | undefined)
+          }}
           pagination={{
             total,
             current: page,

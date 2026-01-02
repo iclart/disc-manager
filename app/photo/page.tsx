@@ -56,10 +56,14 @@ export default function PhotoPage() {
     fetchDiscs()
   }, [page, pageSize])
 
-  const fetchPhotos = async () => {
+  const fetchPhotos = async (sortField?: string, sortOrder?: 'ascend' | 'descend') => {
     setLoading(true)
     try {
-      const res = await fetch(`/api/photo?page=${page}&pageSize=${pageSize}`)
+      let url = `/api/photo?page=${page}&pageSize=${pageSize}`
+      if (sortField && sortOrder) {
+        url += `&sortField=${sortField}&sortOrder=${sortOrder}`
+      }
+      const res = await fetch(url)
       const data = await res.json()
       setPhotoList(data.data)
       setTotal(data.total)
@@ -322,7 +326,7 @@ export default function PhotoPage() {
   }
 
   const columns = [
-    { title: '写真名称', dataIndex: 'name', key: 'name' },
+    { title: '写真名称', dataIndex: 'name', key: 'name', sorter: true },
     {
       title: '总大小',
       dataIndex: 'size',
@@ -379,7 +383,7 @@ export default function PhotoPage() {
           <Button type="primary" icon={<PlusOutlined />} onClick={handleAdd}>
             添加写真
           </Button>
-          <Button icon={<ReloadOutlined />} onClick={fetchPhotos} loading={loading}>
+          <Button icon={<ReloadOutlined />} onClick={() => fetchPhotos()} loading={loading}>
             刷新
           </Button>
         </Space>
@@ -389,6 +393,11 @@ export default function PhotoPage() {
         dataSource={photoList}
         rowKey="id"
         loading={loading}
+        onChange={(pagination, filters, sorter) => {
+          const sortField = Array.isArray(sorter) ? undefined : sorter.field
+          const sortOrder = Array.isArray(sorter) ? undefined : sorter.order
+          fetchPhotos(sortField as string, sortOrder as 'ascend' | 'descend' | undefined)
+        }}
         expandable={{
           expandedRowRender,
           defaultExpandedRowKeys: [],
