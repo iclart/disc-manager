@@ -20,3 +20,131 @@ body {
 body {
   background-color: #f5f5f5;
 }
+
+/* Mobile Optimizations */
+@media (max-width: 768px) {
+  /* Increase touch target sizes */
+  button,
+  a,
+  .ant-btn {
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  /* Optimize text selection */
+  * {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* Improve font rendering on mobile */
+  body {
+    font-size: 14px;
+    line-height: 1.5;
+  }
+
+  /* Reduce padding on mobile */
+  .ant-modal-body {
+    padding: 16px !important;
+  }
+
+  .ant-modal-footer {
+    padding: 12px 16px !important;
+  }
+
+  /* Optimize table overflow */
+  .ant-table-wrapper {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Improve form input sizes */
+  .ant-input,
+  .ant-select-selector {
+    font-size: 16px !important; /* Prevents iOS zoom on focus */
+  }
+
+  /* Optimize card spacing */
+  .ant-card {
+    margin-bottom: 12px;
+  }
+
+  .ant-card-body {
+    padding: 12px !important;
+  }
+
+  /* Improve space component wrapping */
+  .ant-space {
+    flex-wrap: wrap;
+  }
+
+  /* Optimize tabs for mobile */
+  .ant-tabs-tab {
+    padding: 8px 12px !important;
+    font-size: 14px;
+  }
+
+  /* Reduce modal top spacing on mobile */
+  .ant-modal {
+    margin: 16px !important;
+    max-width: calc(100vw - 32px) !important;
+  }
+
+  /* Improve select dropdown on mobile */
+  .ant-select-dropdown {
+    font-size: 16px;
+  }
+
+  /* Optimize tag display */
+  .ant-tag {
+    font-size: 12px;
+    padding: 0 6px;
+    line-height: 20px;
+  }
+
+  /* Improve pagination on mobile */
+  .ant-pagination-item,
+  .ant-pagination-prev,
+  .ant-pagination-next {
+    min-width: 36px;
+    height: 36px;
+  }
+}
+
+/* Extra small devices (phones, less than 375px) */
+@media (max-width: 374px) {
+  body {
+    font-size: 13px;
+  }
+
+  .ant-btn {
+    padding: 4px 12px !important;
+    font-size: 13px;
+  }
+}
+
+/* Improve scrollbar styling */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}
+
+/* Mobile-specific scrollbar */
+@media (max-width: 768px) {
+  ::-webkit-scrollbar {
+    width: 4px;
+    height: 4px;
+  }
+}

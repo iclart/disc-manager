@@ -1,10 +1,12 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Form, Input, Button, Card, message, Tabs } from 'antd'
+import { Form, Input, Button, Card, message, Tabs, Grid } from 'antd'
 import { UserOutlined, LockOutlined } from '@ant-design/icons'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+
+const { useBreakpoint } = Grid
 
 type SystemConfig = {
   id: number
@@ -15,6 +17,8 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false)
   const [systemConfig, setSystemConfig] = useState<SystemConfig | null>(null)
   const router = useRouter()
+  const screens = useBreakpoint()
+  const isMobile = !screens.sm
 
   useEffect(() => {
     fetchSystemConfig()
@@ -201,16 +205,18 @@ export default function LoginPage() {
       alignItems: 'center',
       justifyContent: 'center',
       background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-      padding: 20,
+      padding: isMobile ? 16 : 20,
     }}>
       <Card
         style={{ width: '100%', maxWidth: 400 }}
-        title="光盘管理系统"
+        title={<span style={{ fontSize: isMobile ? 18 : 20 }}>光盘管理系统</span>}
+        headStyle={{ textAlign: 'center', borderBottom: isMobile ? '1px solid #f0f0f0' : undefined }}
       >
         <Tabs
           defaultActiveKey="login"
           centered
           items={tabItems}
+          size={isMobile ? 'small' : 'middle'}
         />
       </Card>
     </div>
